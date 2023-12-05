@@ -153,7 +153,7 @@ stock_price = function(sec="STK",sym,currency,exchange="SMART",reqType=4) {
     #### Write data to CSV file as data input by end user or Yahoo
     line=tibble::tibble(datetime=format(lubridate::now(),"%e %b %Y %Hh%M"),sym=sym)
     line$price=val
-    utils::write.table(line,"C:/Users/aldoh/Documents/Global/prices.csv",sep=";",
+    utils::write.table(line,paste0(config::get("DirNewTrading"),"prices.csv"),sep=";",
                        row.names = FALSE,quote=F,col.names = FALSE,append=TRUE)
   }
   val=line[["price"]]

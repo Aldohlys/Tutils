@@ -4,7 +4,14 @@
 \alias{getBSStraddlePrice}
 \title{getBSStraddlePrice}
 \usage{
-getBSStraddlePrice(S, K, r = config::get("interest_rate"), DTE, sig, div = 0)
+getBSStraddlePrice(
+  S,
+  K,
+  r = as.numeric(config::get("interest_rate")),
+  DTE,
+  sig,
+  div = 0
+)
 }
 \arguments{
 \item{S}{Spot price or current underlying price}

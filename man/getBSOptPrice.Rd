@@ -4,7 +4,15 @@
 \alias{getBSOptPrice}
 \title{getBSOptPrice}
 \usage{
-getBSOptPrice(type, S, K, r = config::get("interest_rate"), DTE, sig, div = 0)
+getBSOptPrice(
+  type,
+  S,
+  K,
+  r = as.numeric(config::get("interest_rate")),
+  DTE,
+  sig,
+  div = 0
+)
 }
 \arguments{
 \item{type}{a string, if equal to "Put" then getBSPutPrice is called, if equal to "Call" getBSCallPrice is called, else NA is returned.}

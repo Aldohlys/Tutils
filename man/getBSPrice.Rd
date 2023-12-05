@@ -8,7 +8,7 @@ getBSPrice(
   type,
   S,
   K,
-  r = config::get("interest_rate"),
+  r = as.numeric(config::get("interest_rate")),
   DTE,
   sig,
   mul,

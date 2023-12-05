@@ -4,7 +4,15 @@
 \alias{getBSOptDelta}
 \title{getBSOptDelta}
 \usage{
-getBSOptDelta(type, S, K, DTE, sig, r = config::get("interest_rate"), div = 0)
+getBSOptDelta(
+  type,
+  S,
+  K,
+  DTE,
+  sig,
+  r = as.numeric(config::get("interest_rate")),
+  div = 0
+)
 }
 \arguments{
 \item{type}{a string, if equal to "Put" then getBSPutPrice is called, if equal to "Call" getBSCallPrice is called, if equal to "Stock" returns 1, else returns NA}

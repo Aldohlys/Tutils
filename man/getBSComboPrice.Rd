@@ -4,7 +4,13 @@
 \alias{getBSComboPrice}
 \title{getBSComboPrice}
 \usage{
-getBSComboPrice(data, S, r = config::get("interest_rate"), sig, div = 0)
+getBSComboPrice(
+  data,
+  S,
+  r = as.numeric(config::get("interest_rate")),
+  sig,
+  div = 0
+)
 }
 \arguments{
 \item{data}{a data frame containing the mandatory following fields: pos,type,strike,DTE,mul + sig}

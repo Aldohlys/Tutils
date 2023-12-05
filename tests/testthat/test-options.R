@@ -70,7 +70,8 @@ test_that("getBSComboPrice works with a fourth set of values,
           - this time with 2 different sig in the dataframe
           and PGCD equals 3", {
             expect_equal({
-              df=cbind(data.frame(pos=c(3,-3),type=c("Put","Put"),strike=c(280,285),DTE=c(25,150),sig=c(0.45,0.25)),mul=100,r=config::get("interest_rate"))
+              df=cbind(data.frame(pos=c(3,-3),type=c("Put","Put"),strike=c(280,285),DTE=c(25,150),
+                                  sig=c(0.45,0.25)),mul=100,r=as.numeric(config::get("interest_rate")))
               round(getBSComboPrice(df,S=285),2)
             },-457.23)
 })

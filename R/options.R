@@ -52,7 +52,7 @@
 #'getBSCallPrice(S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
 
-getBSCallPrice <- function(S, K, r=config::get("interest_rate"), DTE, sig, div=0){
+getBSCallPrice <- function(S, K, r=as.numeric(config::get("interest_rate")), DTE, sig, div=0){
   if(any(missing(S), missing(K), missing(DTE),missing(sig))) {
     message(c(as.list(environment())))
     stop("getBSCallPrice: one of arguments missing!!")
@@ -96,7 +96,7 @@ getBSCallPrice <- function(S, K, r=config::get("interest_rate"), DTE, sig, div=0
 #'getBSPutPrice(S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
 
-getBSPutPrice <- function(S, K, r=config::get("interest_rate"), DTE, sig, div=0){
+getBSPutPrice <- function(S, K, r=as.numeric(config::get("interest_rate")), DTE, sig, div=0){
   if(any(missing(S), missing(K), missing(DTE),missing(sig))) stop("getBSPutPrice: one of arguments missing!!")
 
   ## Handle special cases not handled correctly by bsput/bscall
@@ -129,7 +129,7 @@ getBSPutPrice <- function(S, K, r=config::get("interest_rate"), DTE, sig, div=0)
 #'getBSStraddlePrice(S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
 
-getBSStraddlePrice = function(S,K,r=config::get("interest_rate"),DTE,sig,div=0) {
+getBSStraddlePrice = function(S,K,r=as.numeric(config::get("interest_rate")),DTE,sig,div=0) {
   getBSCallPrice(S,K,r,DTE,sig,div)+getBSPutPrice(S,K,r,DTE,sig,div)
 }
 
@@ -157,7 +157,7 @@ getBSStraddlePrice = function(S,K,r=config::get("interest_rate"),DTE,sig,div=0) 
 #'getBSPutPrice(S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
 
-getBSOptPrice = function(type,S,K,r=config::get("interest_rate"),DTE,sig,div=0) {
+getBSOptPrice = function(type,S,K,r=as.numeric(config::get("interest_rate")),DTE,sig,div=0) {
   ##print(paste("getBSOptPrice Type:",type," S:",S," K:",K," r:",r," DTE:",DTE," sig:",sig, "div:",div))
   dplyr::if_else(type=="Put", getBSPutPrice(S, K, r, DTE, sig, div),
                  dplyr::if_else(type=="Call", getBSCallPrice(S, K, r, DTE, sig, div), NA))
@@ -186,7 +186,7 @@ getBSOptPrice = function(type,S,K,r=config::get("interest_rate"),DTE,sig,div=0) 
 #'getBSPutPrice(S=100,K=100,r=0.04,DTE=5,sig=0.25,div=0)
 #'getBSPutPrice(S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
-getBSPrice = function(type,S,K,r=config::get("interest_rate"),DTE,sig,mul,div=0) {
+getBSPrice = function(type,S,K,r=as.numeric(config::get("interest_rate")),DTE,sig,mul,div=0) {
   ##print(paste("getBSOptPrice Type:",type," S:",S," K:",K," r:",r," DTE:",DTE," sig:",sig, "div:",div))
   dplyr::if_else(type=="Put", mul*getBSPutPrice(S, K, r, DTE, sig, div),
                  dplyr::if_else(type=="Call", mul*getBSCallPrice(S, K, r, DTE, sig, div),
@@ -231,7 +231,7 @@ getBSPrice = function(type,S,K,r=config::get("interest_rate"),DTE,sig,mul,div=0)
 #'getBSComboPrice(data=cbind(data.frame(pos=c(200,2),type=c("Stock","Put"),
 #'strike=c(NA,127),DTE=c(NA,18),sig=c(0,0.37),mul=c(1,100)),r=0.05,div=0),S=130)
 #'@export
-getBSComboPrice = function(data,S, r=config::get("interest_rate"), sig,div=0) {
+getBSComboPrice = function(data,S, r=as.numeric(config::get("interest_rate")), sig,div=0) {
 
   ######  data contains pos type strike DTE / sig is either in data, or external to data
   ###### - S is external to data
@@ -291,7 +291,7 @@ getBSComboPrice = function(data,S, r=config::get("interest_rate"), sig,div=0) {
 #'getBSOptDelta(type="Call",S=100,K=100,r=0.04,DTE=5,sig=0.25,div=0)
 #'getBSOptDelta(type="Put",S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
 #'@export
-getBSOptDelta <- function(type,S,K,DTE,sig,r=config::get("interest_rate"),div=0){
+getBSOptDelta <- function(type,S,K,DTE,sig,r=as.numeric(config::get("interest_rate")),div=0){
   ## Handle special cases not handled correctly by bsput/bscall
   ### DTE=0 cannot be handled correctly
   ### Test first that DTE exists (Stock case)
@@ -350,7 +350,7 @@ getVol = function(price,min_vol=0,max_vol=2,iter=0,fPrice,...) {
 #'getImpliedVolOpt(type="Call",S=100,K=100,r=0.04,DTE=5,price=0.85)
 #'getImpliedVolOpt(type="Put",S=22,K=22.5,r=0.04,DTE=5,price=1.1)
 #'@export
-getImpliedVolOpt = function(type,S,K,r=config::get("interest_rate"),DTE,div=0,price) {
+getImpliedVolOpt = function(type,S,K,r=as.numeric(config::get("interest_rate")),DTE,div=0,price) {
   dplyr::if_else(is.na(price),NA,
   switch(type,
     "Stock" = 0,
@@ -379,11 +379,11 @@ getImpliedVolOpt = function(type,S,K,r=config::get("interest_rate"),DTE,div=0,pr
 #'getImpliedVolStraddle(S=100,K=100,r=0.04,DTE=30,price=3.85)
 #'getImpliedVolStraddle(S=22,K=22.5,r=0.04,DTE=30,price=1.1)
 #'@export
-getImpliedVolStraddle = function(S,K,r=config::get("interest_rate"),DTE,div=0,price) {
+getImpliedVolStraddle = function(S,K,r=as.numeric(config::get("interest_rate")),DTE,div=0,price) {
   getVol(price=price,fPrice=getBSStraddlePrice,S=S,K=K,r=r,DTE=DTE,div=div)
 }
 
-getImpliedVolCombo = function(S,data,r=config::get("interest_rate"),div=0,price) {
+getImpliedVolCombo = function(S,data,r=as.numeric(config::get("interest_rate")),div=0,price) {
   getVol2(price=price,fPrice=getBSComboPrice,data=data,S=S,r=r,div=div)
 }
 

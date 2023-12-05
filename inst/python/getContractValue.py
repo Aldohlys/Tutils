@@ -109,7 +109,7 @@ def getStockValue(sec,sym,currency,exchange,reqType):
   df=pd.DataFrame(data)
   
   #### New value available - then store it. If same as before, store it anyway because of new timestamp
-  df.to_csv("C:/Users/aldoh/Documents/Global/prices.csv", mode='a', header=False, sep=";", index=False)
+  df.to_csv("C:/Users/aldoh/Documents/NewTrading/prices.csv", mode='a', header=False, sep=";", index=False)
   return(df)
 
 def getCurrencyPairValue(currency_pair,reqType):
@@ -220,7 +220,7 @@ def retrieve_prices(position_list,reqType):
   
   if not du.empty:
     du.insert(0,"datetime",datetime.datetime.now().strftime('%d %b %Y %Hh%M'))
-    du.to_csv("C:/Users/aldoh/Documents/Global/prices.csv",header=False, index=False, mode='a', sep=';')
+    du.to_csv("C:/Users/aldoh/Documents/NewTrading/prices.csv",header=False, index=False, mode='a', sep=';')
 
 
 ##dh=itertools.islice(dh,len(dh)-1,len(dh))
@@ -256,7 +256,7 @@ def find_nearest_number(numbers, target):
 
 
 def getChains(sym,secType,currency,exchangeSec):
-  with open("C:/Users/aldoh/Documents/RAnalysis/Chains.json", "r") as fp:
+  with open("C:/Users/aldoh/Documents/NewTrading/Chains.json", "r") as fp:
     stored_chains=json.load(fp)
   
   #### First verify that sym exists
@@ -289,7 +289,7 @@ def getChains(sym,secType,currency,exchangeSec):
     for chain in sub_chains: 
       chain[1]=sym
     keep_records.append(sub_chains)
-    with open("C:/Users/aldoh/Documents/RAnalysis/Chains.json","w") as fp:
+    with open("C:/Users/aldoh/Documents/NewTrading/Chains.json","w") as fp:
       json.dump(keep_records,fp,indent=4)
     return(sub_chains)
   
@@ -328,7 +328,7 @@ def getChain(sym,secType,currency,exchangeSec,exchangeOpt,tradingClass):
 
 
 def getStrikesfromExpDate(sym,currency,exchange,tradingClass,expdate,strikes):
-  with open("C:/Users/aldoh/Documents/RAnalysis/Strikes.json", "r") as fp:
+  with open("C:/Users/aldoh/Documents/NewTrading/Strikes.json", "r") as fp:
     stored_chains=json.load(fp)
   
   stored_strikes= [chain for chain in stored_chains if (chain[0]==sym and chain[1]==tradingClass and chain[2]==expdate)]
@@ -357,7 +357,7 @@ def getStrikesfromExpDate(sym,currency,exchange,tradingClass,expdate,strikes):
   record=[sym,tradingClass,expdate,updated_strikes]
   stored_chains.append(record)
 
-  with open("C:/Users/aldoh/Documents/RAnalysis/Strikes.json", "w") as fp:
+  with open("C:/Users/aldoh/Documents/NewTrading/Strikes.json", "w") as fp:
     json.dump(stored_chains,fp,indent=4)
 
   return(updated_strikes)

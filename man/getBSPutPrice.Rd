@@ -4,7 +4,14 @@
 \alias{getBSPutPrice}
 \title{getBSPutPrice}
 \usage{
-getBSPutPrice(S, K, r = config::get("interest_rate"), DTE, sig, div = 0)
+getBSPutPrice(
+  S,
+  K,
+  r = as.numeric(config::get("interest_rate")),
+  DTE,
+  sig,
+  div = 0
+)
 }
 \arguments{
 \item{S}{Spot price or current underlying price}
