@@ -26,6 +26,7 @@
 #'The window is modal
 #'This function cannot be used outside a Shiny app
 #'@param error_msg string to be displayed. Default to empty string
+#'@returns NULL
 #'@keywords error Shiny
 #'@export
 #'@examples
