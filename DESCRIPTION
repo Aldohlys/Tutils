@@ -24,7 +24,9 @@ Imports:
     derivmkts,
     tidyr,
     quantmod,
-    zoo
+    zoo,
+    hms,
+    xts
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3.9000
 Suggests: 
