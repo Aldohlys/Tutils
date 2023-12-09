@@ -4,18 +4,18 @@
 \alias{readPortfolio}
 \title{readPortfolio}
 \usage{
-readPortfolio(accountnr)
+readPortfolio(file)
 }
 \arguments{
-\item{accountnr}{is the account number (IBKR)}
+\item{file}{is the absolute path to a portfolio file. Portfolio file is a CSV file that must follow IBKR naming rules.}
 }
 \value{
 a tibble with the following columns:
-\code{date; heure; type; symbol; expiration; strike; Put/Call; pos; mktPrice; optPrice}
+\code{date; heure; symbol; type; expiration; strike; pos; mktPrice; optPrice}
 \code{mktValue; avgCost; uPnL; IV; pvDividend; delta; gamma; vega; theta; uPrice; multiplier; currency}
 }
 \description{
-This function reads the \emph{account_nr.csv} file and performs a bunch of data wrangling before returning a tibble with all data.
+This function reads the input file and performs a bunch of data wrangling before returning a tibble with all data.
 }
 \details{
 Data wrangling:
@@ -24,11 +24,8 @@ Data wrangling:
 \item converts \code{position} to \code{integer}
 \item removes all CASH positions
 \item rename IBKR columns to more friendly names
+\item Remove secType and right columns and replace them by \code{type} column.
+This assumes a right column exists in portfolio file
+\code{type} value is either Stock, Put, Call or NA for anything else
 }
-
-It then filters data so that it matches \code{accountnr} number
-}
-\examples{
-readPortfolio("D100000")
-
 }

@@ -26,7 +26,9 @@ Imports:
     quantmod,
     zoo,
     hms,
-    xts
+    xts,
+    DT,
+    htmltools
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3.9000
 Suggests: 

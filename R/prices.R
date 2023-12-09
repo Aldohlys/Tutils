@@ -8,9 +8,10 @@
 #'@export
 getSymFromDate = function(sym, date) {
   lookup_yahoo = c("ESTX50"="^STOXX50E","MC"="MC.PA","OR"="OR.PA","TTE"="TTE.PA","AI"="AI.PA",
-                   "SPX"="^SPX","XSP"="^XSP","NESN"="NESN.SW","HOLN"="HOLN.SW","SLHN"="SLHN.SW")
+                   "SPX"="^SPX","XSP"="^XSP","RUT"="^RUT","NESN"="NESN.SW","HOLN"="HOLN.SW","SLHN"="SLHN.SW",
+                   "EUR.USD"="EURUSD=X","EUR.CHF"="EURCHF=X")
   sym=dplyr::if_else(sym %in% names(lookup_yahoo), lookup_yahoo[sym], sym)
-  lapply(sym, function(x) { quantmod::getSymbols(x,from=date,auto.assign = F,warnings=FALSE)})
+  lapply(sym, function(x) { suppressMessages(quantmod::getSymbols(x,from=date,auto.assign = F,warnings=FALSE))})
 }
 
 #'@export
@@ -26,11 +27,11 @@ getSym = function(sym){
 # }
 
 #'@export
-getPrice= function(sym_list) {
+getPriceAllDates= function(sym_list) {
   ### Takes only the first element of the sym list
   ### This is for compatibility with getSymFromDate
   sym=sym_list[[1]]
-  price=data.frame(date=as.Date(zoo::index(sym)), value=zoo::coredata(sym[,6]))
+  price=dplyr::tibble(date=as.Date(zoo::index(sym)), value=as.numeric(sym[,6]))
   colnames(price)=c("date","value")
   return(price)
 }
@@ -46,7 +47,7 @@ getsymPrice = function(sym,currency,report_date){
   ### First case - requested date is an holiday
   ### Get last close price in this case
   if ((!RQuantLib::isBusinessDay("UnitedStates",report_date)) | report_date < lubridate::today()) {
-    prices_list=getPrice(getSymFromDate(sym,lubridate::ymd("2023-01-03")))
+    prices_list=getPriceAllDates(getSymFromDate(sym,lubridate::ymd("2023-01-03")))
     report_date = findNearestNumberOrDate(prices_list$date, report_date)
     price = dplyr::filter(prices_list,date==report_date)
     return(price$value)
@@ -141,6 +142,11 @@ stock_price = function(sec="STK",sym,currency,exchange="SMART",reqType=4) {
   message("stock_price")
   ### Special case for CSBGU0 stock I won in Gonet portfolio
   if (sym == "CSBGU0") reqType=3
+
+  ### getStockValue will either get a price from "C:/Users/aldoh/Documents/NewTrading/prices.csv" if one exists younger than 1 hour
+  ### Or requests a price from IBKR
+  ### Or returns null if IBKR is not available or price cannot be retrieved
+  ### It shall return -1 if the ticker is unknown by IBKR
   line=reticulate::py$getStockValue(sec=sec,sym=sym,currency=currency,exchange=exchange,reqType=reqType)
 
   #### readline works only in interactive mode,
@@ -157,6 +163,9 @@ stock_price = function(sec="STK",sym,currency,exchange="SMART",reqType=4) {
                        row.names = FALSE,quote=F,col.names = FALSE,append=TRUE)
   }
   val=line[["price"]]
-  print(paste0("DateTime:",line[["datetime"]], " Value: ",val))
-  return(val)
+  if (val== -1) return(-1)
+  else {
+    print(paste0("DateTime:",line[["datetime"]], " Value: ",val))
+    return(val)
+  }
 }

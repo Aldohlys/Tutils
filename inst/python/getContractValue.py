@@ -38,6 +38,34 @@ def determine_sym(sym):
   if (".L" in sym): return sym[:-2]
   return sym
 
+#' Live	1	Live market data is streaming data relayed back in real time. 
+#' Market data subscriptions are required to receive live market data.
+#' 
+#' Frozen	2	Frozen market data is the last data recorded at market close. 
+#' In TWS, Frozen data is displayed in gray numbers. 
+#' When you set the market data type to Frozen, you are asking TWS to send the last available quote
+#' when there is not one currently available. 
+#' For instance, if a market is currently closed and real time data is requested, 
+#' -1 values will commonly be returned for the bid and ask prices to indicate
+#' there is no current bid/ask data available. 
+#' TWS will often show a 'frozen' bid/ask which represents the last value recorded by the system. 
+#' To receive the last know bid/ask price before the market close, 
+#' switch to market data type 2 from the API before requesting market data. 
+#' API frozen data requires TWS/IBG v.962 or higher 
+#' and the same market data subscriptions necessary for real time streaming data.
+#' 
+#' Delayed	3	
+#' Free, delayed data is 15 - 20 minutes delayed.
+#' In TWS, delayed data is displayed in brown background.
+#'  When you set market data type to delayed, you are telling TWS to automatically switch to delayed market data
+#'  if the user does not have the necessary real time data subscription.
+#'  If live data is available a request for delayed data would be ignored by TWS. 
+#'  Delayed market data is returned with delayed Tick Types (Tick ID 66~76).
+#'  Note: TWS Build 962 or higher is required and API version 9.72.18 or higher is suggested.
+#'  
+#'  Delayed Frozen	4	Requests delayed "frozen" data for a user without market data subscriptions.
+# 
+
 
 def getStockValue(sec,sym,currency,exchange,reqType):
   ### This function returns either:
@@ -52,7 +80,7 @@ def getStockValue(sec,sym,currency,exchange,reqType):
   
   ### Retrieve last prices for 'sym' if any
   print("getStockValue")
-  stored_prices=pd.read_csv("C:/Users/aldoh/Documents/Global/prices.csv",sep=';')
+  stored_prices=pd.read_csv("C:/Users/aldoh/Documents/NewTrading/prices.csv",sep=';')
   line=stored_prices.loc[stored_prices['sym'] == sym]
   
   ### Return last line of lines if at least one and the line is less than 60 minutes old

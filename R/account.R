@@ -22,7 +22,7 @@ readAccount = function(accountnr) {
   ### Convert from European date format to internal R date format
   account_data$date=as.Date(account_data$date,format="%d.%m.%Y")
   account_data$heure=hms::parse_hms(account_data$heure)
-  filter(account_data,account==accountnr)
+  dplyr::filter(account_data,account==accountnr)
 }
 
 
@@ -31,7 +31,7 @@ readAccount = function(accountnr) {
 #' readPortfolio
 #'
 #'
-#' This function reads the _account_nr.csv_ file and performs a bunch of data wrangling before returning a tibble with all data.
+#' This function reads the input file and performs a bunch of data wrangling before returning a tibble with all data.
 #'
 #'
 #' Data wrangling:
@@ -39,24 +39,25 @@ readAccount = function(accountnr) {
 #' 2. converts \code{position} to \code{integer}
 #' 3. removes all CASH positions
 #' 4. rename IBKR columns to more friendly names
+#' 5. Remove secType and right columns and replace them by \code{type} column.
+#' This assumes a right column exists in portfolio file
+#' \code{type} value is either Stock, Put, Call or NA for anything else
+
 #'
-#' It then filters data so that it matches \code{accountnr} number
-#'
-#'@param accountnr is the account number (IBKR)
+#'@param file is the absolute path to a portfolio file. Portfolio file is a CSV file that must follow IBKR naming rules.
 #'@returns a tibble with the following columns:
-#' \code{date; heure; type; symbol; expiration; strike; Put/Call; pos; mktPrice; optPrice}
+#' \code{date; heure; symbol; type; expiration; strike; pos; mktPrice; optPrice}
 #' \code{mktValue; avgCost; uPnL; IV; pvDividend; delta; gamma; vega; theta; uPrice; multiplier; currency}
 #'@export
-#'@examples
-#'readPortfolio("D100000")
-#'
-readPortfolio = function(accountnr) {
+readPortfolio = function(file) {
   message("readPortfolio")
-  file=paste0(config::get("DirNewTrading"),accountnr,".csv")
   #### Test if requested portfolio is present (e.g. Live.csv does not exist)
   if (file.exists(file)) {
     portf= suppressMessages(readr::read_delim(file=file,delim=";",
                                        locale=readr::locale(date_names="en",decimal_mark=".",grouping_mark="",encoding="UTF-8")))
+    ### portf contains all following columns: date;heure;secType;symbol;lastTradeDateOrContractMonth;strike;
+    # right;position;marketPrice;optPrice;
+    # marketValue;averageCost;unrealizedPnL;impliedVol;pvDividend;delta;gamma;vega;theta;undPrice;multiplier;currency
     ### Convert from European date format to internal R date format
     portf$date=lubridate::dmy(portf$date)
     portf$heure=hms::parse_hms(portf$heure)
@@ -69,13 +70,25 @@ readPortfolio = function(accountnr) {
 
     ### Case where there are options in the portfolio
     if ("lastTradeDateOrContractMonth" %in% colnames(portf)) portf = dplyr::rename(portf, expiration=lastTradeDateOrContractMonth)
-    if ("right" %in% colnames(portf)) portf = dplyr::rename(portf, `Put/Call`=right)
     if ("undPrice" %in% colnames(portf)) portf = dplyr::rename(portf, uPrice=undPrice)
     if ("impliedVol" %in% colnames(portf)) portf = dplyr::rename(portf,IV=impliedVol)
 
-    portf = dplyr::rename(portf, type=secType,pos=position,
+    #### Remove special Gonet "USD_" fields if present
+    portf = dplyr::select(portf,!starts_with("USD_"))
+
+    portf = dplyr::rename(portf, pos=position,
                       mktPrice=marketPrice, mktValue=marketValue,
                       avgCost=averageCost,uPnL=unrealizedPnL)
+
+    portf = dplyr::mutate(portf, .after=symbol,
+                          type= dplyr::case_match(secType,
+                                                  "STK" ~ "Stock",
+                                                  c("OPT","FOP") ~ dplyr::if_else(portf$right=="P","Put","Call"),
+                                                  "FUT" ~ "Future",
+                                                .default = secType),
+                        .keep="unused")
+    portf = dplyr::select(portf,-right)
+
     return(portf)
   }
   else {

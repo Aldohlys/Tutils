@@ -34,7 +34,7 @@ getTradeNr = function(v_instrument) {
                     Instrument),TradeNr))
   ### If all instrument are NA -> trade is not present - not yet recorded in Trades.csv
   if (length(trade_nr)==0) {
-    display_error_message("Trade not present in Trades.csv file!")
+    display_error_message("Trade not opened/adjusted in Trades.csv file!")
     print(v_instrument)
     return(NA)
   }
@@ -56,7 +56,11 @@ getTradeNr = function(v_instrument) {
 #'@export
 getOpenDate = function(trade_nr) {
 
-  stopifnot("trade_nr must be a numeric" = is.numeric(trade_nr))
+  if (!is.numeric(trade_nr)) {
+    display_error_message("trade_nr must be a numeric")
+    return(NA)
+  }
+
   trades=getAllTrades()
 
   trades = dplyr::filter(trades, TradeNr==trade_nr)
@@ -75,7 +79,7 @@ getOpenDate = function(trade_nr) {
   ### If there are several dates for the trade nr (adjusted case), take the oldest one (min)
   orig_trade_date=suppressWarnings(min(trade_dates,na.rm=T))
 
-  message("getOpenDate: ",trade_nr," orig_date: ",format(orig_trade_date,"%d-%m-%Y"))
+  message("getOpenDate: ",trade_nr," orig_date: ",format(orig_trade_date,"%d.%m.%Y"))
   return(orig_trade_date)
 }
 
@@ -83,7 +87,11 @@ getOpenDate = function(trade_nr) {
 #'@export
 getRnR = function(trade_nr) {
   message("getRnR - Reward and Risk")
-  stopifnot("trade_nr must be a numeric" = is.numeric(trade_nr))
+
+  if (!is.numeric(trade_nr)) {
+    display_error_message("trade_nr must be a numeric")
+    return(NA)
+  }
 
   ##if (is.unsorted(v_instrument)) stop("Instrument must be sorted - prog. error")
   ### Read Trades.csv file and extract open/adjusted trades, to select all instruments present in dt argument
