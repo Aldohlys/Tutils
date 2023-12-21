@@ -306,6 +306,119 @@ getBSOptDelta <- function(type,S,K,DTE,sig,r=as.numeric(config::get("interest_ra
   })
 }
 
+#######  getBSOptVega ###############
+#'  getBSOptVega
+#'
+#' This function supplies vega value of an option based upon Black-Scholes-Merton model
+#'
+#' It performs the computation as per textbooks using derivmkts package:
+#'
+#'This function can be vectorized. It handles also special cases not handled correctly by bsput/bscall, such as:
+#' - DTE = 0 -> Vega = 0
+#' - DTE < 0 -> Vega = 0
+#'@param type a string, if equal to "Put" then getBSPutPrice is called, if equal to "Call" getBSCallPrice is called, if equal to "Stock" returns 1, else returns NA
+#'@param S Spot price or current underlying price
+#'@param K Strike price
+#'@param r Interest rate - default value is defined in config.yml file
+#'@param DTE Number of days to expiration (may be a decimal number - useful as expiration may happen at 4:00pm or in the morning (index case))
+#'@param sig annualized volatility
+#'@param div annualized dividend yield (i.e. sum of present values of upcoming dividends over 1 year divided by current spot price). Default value is 0.
+#'@keywords Black-Scholes trading
+#'@examples
+#'getBSOptVega(type="Call",S=100,K=100,r=0.04,DTE=5,sig=0.25,div=0)
+#'getBSOptVega(type="Put",S=220,K=225,r=0.04,DTE=500,sig=0.3,div=0)
+#'getBSOptVega(type="Put",S=220,K=247,r=0.04,DTE=700,sig=0.2,div=0)
+#'getBSOptVega(type="Put",S=22,K=22.5,r=0.04,DTE=500,sig=0.3,div=0)
+#'@export
+getBSOptVega <- function(type,S,K,DTE,sig,r=as.numeric(config::get("interest_rate")),div=0){
+  ## Handle special cases not handled correctly by bsput/bscall
+  ### DTE=0 cannot be handled correctly
+  ### Test first that DTE exists (Stock case)
+
+  dplyr::if_else (type=="Stock", 1, {
+    dplyr::if_else (DTE<=0, 0, {
+      T=DTE/365
+      ##print(paste("getBSOptVega: argts S:",S," K:",K," sig:",sig," r:",r," T:",T," div:",div))
+      dplyr::if_else(type=="Put", derivmkts::bsopt(S,K,sig,r,T,div)$Put["Vega",],
+                     derivmkts::bsopt(S,K,sig,r,T,div)$Call["Vega",])
+    })
+  })
+}
+
+#######  getBSOptTheta ###############
+#'  getBSOptTheta
+#'
+#' This function supplies theta value of an option based upon Black-Scholes-Merton model
+#'
+#' It performs the computation as per textbooks using derivmkts package:
+#'
+#'This function can be vectorized. It handles also special cases not handled correctly by bsput/bscall, such as:
+#' - DTE = 0 -> Theta = 0
+#' - DTE < 0 -> Theta = 0
+#'@param type a string, if equal to "Put" then getBSPutPrice is called, if equal to "Call" getBSCallPrice is called, if equal to "Stock" returns 1, else returns NA
+#'@param S Spot price or current underlying price
+#'@param K Strike price
+#'@param r Interest rate - default value is defined in config.yml file
+#'@param DTE Number of days to expiration (may be a decimal number - useful as expiration may happen at 4:00pm or in the morning (index case))
+#'@param sig annualized volatility
+#'@param div annualized dividend yield (i.e. sum of present values of upcoming dividends over 1 year divided by current spot price). Default value is 0.
+#'@keywords Black-Scholes trading
+#'@examples
+#'getBSOptTheta(type="Call",S=100,K=100,r=0.04,DTE=5,sig=0.25,div=0)
+#'getBSOptTheta(type="Put",S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
+#'@export
+getBSOptTheta <- function(type,S,K,DTE,sig,r=as.numeric(config::get("interest_rate")),div=0){
+  ## Handle special cases not handled correctly by bsput/bscall
+  ### DTE=0 cannot be handled correctly
+  ### Test first that DTE exists (Stock case)
+
+  dplyr::if_else (type=="Stock", 1, {
+    dplyr::if_else (DTE<=0, 0, {
+      T=DTE/365
+      ##print(paste("getBSOptTheta: argts S:",S," K:",K," sig:",sig," r:",r," T:",T," div:",div))
+      dplyr::if_else(type=="Put", derivmkts::bsopt(S,K,sig,r,T,div)$Put["Theta",],
+                     derivmkts::bsopt(S,K,sig,r,T,div)$Call["Theta",])
+    })
+  })
+}
+
+#######  getBSOptGamma ###############
+#'  getBSOptGamma
+#'
+#' This function supplies gamma value of an option based upon Black-Scholes-Merton model
+#'
+#' It performs the computation as per textbooks using derivmkts package:
+#'
+#'This function can be vectorized. It handles also special cases not handled correctly by bsput/bscall, such as:
+#' - DTE = 0 -> Gamma = 0
+#' - DTE < 0 -> Gamma = 0
+#'@param type a string, if equal to "Put" then getBSPutPrice is called, if equal to "Call" getBSCallPrice is called, if equal to "Stock" returns 1, else returns NA
+#'@param S Spot price or current underlying price
+#'@param K Strike price
+#'@param r Interest rate - default value is defined in config.yml file
+#'@param DTE Number of days to expiration (may be a decimal number - useful as expiration may happen at 4:00pm or in the morning (index case))
+#'@param sig annualized volatility
+#'@param div annualized dividend yield (i.e. sum of present values of upcoming dividends over 1 year divided by current spot price). Default value is 0.
+#'@keywords Black-Scholes trading
+#'@examples
+#'getBSOptGamma(type="Call",S=100,K=100,r=0.04,DTE=5,sig=0.25,div=0)
+#'getBSOptGamma(type="Put",S=22,K=22.5,r=0.04,DTE=5,sig=0.3,div=0)
+#'@export
+getBSOptGamma <- function(type,S,K,DTE,sig,r=as.numeric(config::get("interest_rate")),div=0){
+  ## Handle special cases not handled correctly by bsput/bscall
+  ### DTE=0 cannot be handled correctly
+  ### Test first that DTE exists (Stock case)
+
+  dplyr::if_else (type=="Stock", 1, {
+    dplyr::if_else (DTE<=0, 0, {
+      T=DTE/365
+      ##print(paste("getBSOptGamma: argts S:",S," K:",K," sig:",sig," r:",r," T:",T," div:",div))
+      dplyr::if_else(type=="Put", derivmkts::bsopt(S,K,sig,r,T,div)$Put["Gamma",],
+                     derivmkts::bsopt(S,K,sig,r,T,div)$Call["Gamma",])
+    })
+  })
+}
+
 #### getVol Implied vol computation #########################
 #### Also valid for different combo options
 ### getVol deduces implied volatility from an option price (called price)
@@ -387,22 +500,27 @@ getImpliedVolCombo = function(S,data,r=as.numeric(config::get("interest_rate")),
   getVol2(price=price,fPrice=getBSComboPrice,data=data,S=S,r=r,div=div)
 }
 
-# getVol2 = function(price,fPrice,...) {
-#   if (missing(price)) return(NA)
-#   sample_size=0.5  ### Slices of 50% each
-#   sample_increment=0.0001 ### to get volatility at 0.05% precision - 5'000 samples each time
-#   for (sig1 in seq(from=0,to=2,by=sample_size)) {
-#     prices_list=fPrice(...,sig=seq(sig1,sig1+sample_size,by=sample_increment))
-#     min_price_index=which.min(abs(prices_list-price))
-#     min_price=prices_list[min_price_index]
-#     if (abs(min_price-price)<0.001) {
-#       vol=sig1+(min_price_index-1)*sample_increment
-#       ### Limit to xx.y% format
-#       return(round(vol,3))
-#     }
-#   }
-#   display_error_message("Could not compute a volatility from price function !!")
-# }
+### getVol2 requires fPrice to be vectorized, i.e. a vecotr of volatilities can be passed on fPrice
+getVol2 = function(price,fPrice,...) {
+  if (missing(price)) return(NA)
+  sample_size=0.5  ### 4 Slices of 50% each, from 0 to 200%
+  sample_increment=0.0001 ### to get volatility at 0.05% precision - 5'000 samples each time
+  for (sig1 in seq(from=0,to=2,by=sample_size)) {
+    ### Compute prices_list as a result of fPrice applied to a range of vol values
+    ### from sig1 till sig1+sample_size
+    prices_list=fPrice(...,sig=seq(sig1,sig1+sample_size,by=sample_increment))
+    min_price_index=which.min(abs(prices_list-price))
+    min_price=prices_list[min_price_index]
+    ### If min_price is near enough price then returns vol at 0.01% precision
+    if (abs(min_price-price)<0.001) {
+      vol=sig1+(min_price_index-1)*sample_increment
+      ### Limit to xx.y% format
+      return(round(vol,3))
+    }
+  }
+  ### There was no vol value that fit between 0 and 200%
+  display_error_message("Could not compute a volatility from price function !!")
+}
 
 # getImpliedVolOpt2 = function(df) {
 #   return(unlist(purrr::pmap(df,getImpliedVolOpt)))

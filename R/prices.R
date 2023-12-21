@@ -1,10 +1,17 @@
 
 ###################  Retrieve prices functions #######################
 
-##### Yahoo-based symbol lookup
-### getSym is based upon quantmod getSymbols function
-
 #### auto.assign=TRUE is necessary if multiple symbols at the same time
+#'   getSymFromDate
+#'
+#'This function gets from Yahoo service all values (Open, High, Low, Close, Volume and Adjusted)
+#'for one of a vector of symbols. It is based upon quantmod getSymbols function.
+#'It converts IBKR-style tickers into Yahoo-style tickers first.
+#'@param sym one or a vector of symbols
+#'@param date a start date from which to retrieve symbols
+#'@returns a list of list: each list contains the list of prices and volume: Open, Close, Low, High, Volume and Adjusted
+#'@keywords Yahoo
+#'@examples getSymFromDate("SPY",as.Date("2023-12-01"))
 #'@export
 getSymFromDate = function(sym, date) {
   lookup_yahoo = c("ESTX50"="^STOXX50E","MC"="MC.PA","OR"="OR.PA","TTE"="TTE.PA","AI"="AI.PA",
@@ -14,6 +21,13 @@ getSymFromDate = function(sym, date) {
   lapply(sym, function(x) { suppressMessages(quantmod::getSymbols(x,from=date,auto.assign = F,warnings=FALSE))})
 }
 
+#' getSym
+#'
+#' This function retrieves all values from Yahoo starting from CurrentTradesInitialDate - see config.yml file at user level directory
+#' This function calls \code{getSymFromDate} with one or a vector of tickers.
+#'@param sym one or a vector of symbols
+#'@returns a list of list: each list contains the list of prices and volume: Open, Close, Low, High, Volume and Adjusted
+#'@examples getSym("SPY")
 #'@export
 getSym = function(sym){
   getSymFromDate(sym,lubridate::ymd(config::get("CurrentTradesInitialDate")))
@@ -26,6 +40,13 @@ getSym = function(sym){
 #   return(returns)
 # }
 
+#' getPriceAllDates
+#' This function is a helper function that helps to deal with \code{getSymFromDate} returned values
+#' It extracts the first list of the list of lists returned by \code{getSymFromDate},
+#' Takes the 6th column (adjusted values) and then convert it into a tibble with one column \code{date} and one column \code{value}.
+#'@param sym_list a list of list, each list having 6 fields.
+#'@returns a tibble with one column \code{date} and one column \code{value}.
+#'@examples getPriceAllDates(getSym("SPY"))
 #'@export
 getPriceAllDates= function(sym_list) {
   ### Takes only the first element of the sym list
@@ -36,11 +57,22 @@ getPriceAllDates= function(sym_list) {
   return(price)
 }
 
+######################
 
-### Tries first on Yahoo (close price) - this works only for previous days, not for today
-### THen on IBKR and if not available returns NA
-### report_date can be a closed day -> then takes nearest day in the list
-### prices_list goes back only to CurrentTradesInitialDate for IBKR so begin of 2023 - not suited for Gonet account
+#'   getsymPrice
+#'
+#'This function retrieves the price of one ticker from an exchange or from Yahoo download service.
+#'
+#'It tries first on Yahoo (close price) - this works only for previous days, not for today
+#'Then on IBKR TWS API and if not available returns NA.
+#'
+#'@param sym ticker name, as known by IBKR, If necessary, will be converted to Yahoo ticker name.
+#'@param currency currency of the ticker
+#'@param report_date either today, then it will look at IBKR by calling stock_price, or a past day, then will look at Yahoo service-
+#'\code{report_date} can be a closed day. In this case, nearest day is taken in the list.
+#'Prices list goes back only to CurrentTradesInitialDate )set by config::get() for IBKR so currently begin of 2023
+#'This is not suited for Gonet account
+#'@examples getsymPrice("SPY","USD",as.Date("2023-01-03"))
 #'@export
 getsymPrice = function(sym,currency,report_date){
 
@@ -63,7 +95,17 @@ getsymPrice = function(sym,currency,report_date){
 
 }
 
-### Takes last open date if current date provided does not work
+###
+#' getLastAdjustedPrice
+#'
+#' This function takes one ticker (or a vector of tickers) as input and returns the last available adjusted value from Yahoo service.
+#'
+#' To achieve this, it will call \code{getSymFromDate} with "today - 5" date - so to be sure to get at least one valid date,
+#' even if there are week ends and closed days. It takes last open date if current date provided does not work.
+#' See also \code{getLastPriceDate}
+#'@param ticker ticker name, as known by IBKR - can be one name or a vector of names
+#'@returns a list of values (rounded to 2 decimals) corresponding to last values of tickers
+#'@examples getLastAdjustedPrice("SPY")
 #'@export
 getLastAdjustedPrice = function(ticker) {
   dplyr::if_else( (is.null(ticker) | ticker %in% c("","All","STOCK")),
@@ -78,7 +120,15 @@ getLastAdjustedPrice = function(ticker) {
   )
 }
 
-
+###
+#' getLastPriceDate
+#'
+#' This function takes one ticker (or a vector of tickers) as input and returns the last available
+#' date with an available price - see also \code{getLastAdjustedPrice}.
+#'
+#'@param ticker ticker name, as known by IBKR - can be one name or a vector of names
+#'@returns a list of dates for each ticker. It calls \code{getSymFromDate} to get the dates.
+#'@examples getLastPriceDate("SPY")
 #'@export
 getLastPriceDate = function(ticker) {
   dplyr::if_else( (is.null(ticker) | ticker %in% c("","All","STOCK")),
@@ -91,6 +141,18 @@ getLastPriceDate = function(ticker) {
 
 ### Retrieve data from Yahoo Finance - no need to launch IBKR TWS
 ### Get last price and last change (J/J-1)
+
+###
+#'getLastTickerData
+#'
+#'For a given ticker this function returns the last known closed value (adjusted) and its change from previous day.
+#'
+#'This function is not vectorized and accepts only one ticker at a time.
+#'It calls Yahoo service through \code{getSymFromDate} to obtains necessary value.
+#'@param ticker string - IBKR style of ticker, if equal to "STOCK" or "All" then returns a list of NA values
+#'@returns a list of 2 fields: \code{last} which contains last value of the ticker,
+#'and \code{change} that contains a string giving the percentage of change since previous day.
+#'@examples getLastTickerData("SPY")
 #'@export
 getLastTickerData = function(ticker) {
   if (is.null(ticker) |
@@ -115,9 +177,8 @@ getLastTickerData = function(ticker) {
 ### lastSPY value will never change thereafter
 ####lastSPY=getLastTickerData("SPY")  ### Mkt value
 
-#'@export
 getVal=function(sym) {
-  cat("No value for ",sym,"\n Enter new price: ")
+  display_message(paste0("No value for ",sym,"\n Enter new price: "))
   if (interactive()) {
     ## display_error_message(paste0("No value for",sym," You need to enter a new price"))
     # showModal(modalDialog(
@@ -135,6 +196,22 @@ getVal=function(sym) {
 }
 
 #### Used by Gonet.R script and RAnalysis
+###
+#'stock_price
+#'
+#'For a given ticker this function returns the last known value from IBKR. It first looks for last value stored in prices.csv file.
+#'If one exists that is no older than 1 hour, then this value is returned. Otherwise it looks for IBKR service to retrieve a new data.
+#'If IBKR service is not available, it will request it from end-user on console.In the end the new price is stored in prices.csv file.
+#'
+#'This function is not vectorized and accepts only one ticker at a time.
+#'@param sec security type, equals \code{STK} by default.
+#'Other values are \code{IND} (for index), or \code{FUT} (for future)
+#'@param sym string - IBKR style of ticker, if unknown then function returns -1
+#'@param currency string with possibles values "USD", "CHF", "EUR".
+#'@param exchange string - default value is "SMART". Can be also "EUREX", "CBOE",...
+#'@param reqType default value for IBKR ticker request.
+#'@returns a value
+#'@examples stock_price(sym="SPY",currency="USD")
 #'@export
 stock_price = function(sec="STK",sym,currency,exchange="SMART",reqType=4) {
   #### Default value for security type is Stock

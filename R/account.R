@@ -11,8 +11,8 @@
 #'@export
 readAccount = function(accountnr) {
   file=paste0(config::get("DirNewTrading"),"Account",".csv")
-  account_data = suppressMessages(readr::read_delim(file=file,delim=";",
-                                             locale=readr::locale(date_names="en",decimal_mark=".",grouping_mark="",encoding="UTF-8")))
+  account_data = suppressMessages(read_delim(file=file,delim=";",
+                                             locale=locale(date_names="en",decimal_mark=".",grouping_mark="",encoding="UTF-8")))
 
   ### account	date	heure
   ### NetLiquidation	EquityWithLoanValue	FullAvailableFunds	FullInitMarginReq	FullMaintMarginReq
@@ -53,8 +53,8 @@ readPortfolio = function(file) {
   message("readPortfolio")
   #### Test if requested portfolio is present (e.g. Live.csv does not exist)
   if (file.exists(file)) {
-    portf= suppressMessages(readr::read_delim(file=file,delim=";",
-                                       locale=readr::locale(date_names="en",decimal_mark=".",grouping_mark="",encoding="UTF-8")))
+    portf= suppressMessages(read_delim(file=file,delim=";",
+                                       locale=locale(date_names="en",decimal_mark=".",grouping_mark="",encoding="UTF-8")))
     ### portf contains all following columns: date;heure;secType;symbol;lastTradeDateOrContractMonth;strike;
     # right;position;marketPrice;optPrice;
     # marketValue;averageCost;unrealizedPnL;impliedVol;pvDividend;delta;gamma;vega;theta;undPrice;multiplier;currency
@@ -74,7 +74,7 @@ readPortfolio = function(file) {
     if ("impliedVol" %in% colnames(portf)) portf = dplyr::rename(portf,IV=impliedVol)
 
     #### Remove special Gonet "USD_" fields if present
-    portf = dplyr::select(portf,!starts_with("USD_"))
+    portf = dplyr::select(portf,!dplyr::starts_with("USD_"))
 
     portf = dplyr::rename(portf, pos=position,
                       mktPrice=marketPrice, mktValue=marketValue,

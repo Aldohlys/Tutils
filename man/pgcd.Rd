@@ -9,6 +9,9 @@ pgcd(x)
 \arguments{
 \item{x}{is a vector of integers, may include NA}
 }
+\value{
+numeric GCD
+}
 \description{
 "plus grand commun diviseur"
 GCD function from DescTools has several limitations that are addressed in this package:

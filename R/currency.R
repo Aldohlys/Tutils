@@ -3,8 +3,8 @@
 ### This function work only for IBKR accounts not for Gonet account
 ### This function is NOT exported
 getAllCurrencyPairs = function() {
-  suppressMessages(readr::read_delim(file=config::get("CurrencyPairs"),
-                                     delim=";",locale=readr::locale(date_names="en",decimal_mark=".",
+  suppressMessages(read_delim(file=config::get("CurrencyPairs"),
+                                     delim=";",locale=locale(date_names="en",decimal_mark=".",
                                                              grouping_mark="",encoding="UTF-8")))
 }
 

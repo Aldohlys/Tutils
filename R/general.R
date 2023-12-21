@@ -18,6 +18,30 @@
 
 
 ##########################  General purposes utilities ##########
+#'   Display message
+#'
+#'Within any Shiny app, this function allows to display an information message
+#'The end user then has to click OK button
+#'The window is modal
+#'This function cannot be used outside a Shiny app
+#'@param msg string to be displayed. Default to empty string
+#'@returns NULL
+#'@keywords Shiny
+#'@export
+#'@examples
+#'display_message("Pi value is 3.14")
+
+display_message = function(msg) {
+  if (shiny::isRunning()) {
+    shiny::showModal(shiny::modalDialog(
+      title = "Message",
+      msg,
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  }
+  else message(msg)
+}
 
 #'   Display error message
 #'
@@ -52,6 +76,7 @@ display_error_message = function(error_msg) {
 #'- when there is only one value, GCD raises an error
 #'- GCD does not know how to handle NA
 #'@param x is a vector of integers, may include NA
+#'@return numeric GCD
 #'@keywords arithmetic GCD
 #'@export
 #'@examples
@@ -61,8 +86,13 @@ display_error_message = function(error_msg) {
 
 pgcd = function(x) {
   x= x[!is.na(x)]
-  ### This test convers case where length x =1 and length x=0
+  ### This test covers both cases where length x =1 and length x=0
   if (length(x)<2) return(as.numeric(x))
+  ### Small hack as is.integer does not return T for numeric that are integers
+  if (!isTRUE(all.equal(x, as.integer(x)))) {
+    display_error_message("All position numbers must be integers! Will use 1 as PGCD")
+    return(1)
+  }
   else return(DescTools::GCD(as.numeric(x)))
 }
 
